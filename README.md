@@ -2,185 +2,175 @@ PyZen
 
 Lightweight Local AI Runtime for Tool Calling
 
-PyZen is a lightweight Python runtime designed to connect compact local AI models with Python functions, APIs, databases, automation systems, and application logic.
+PyZen is a lightweight Python runtime designed to connect local AI models with real application tools.
 
-It provides a clean application-facing API while keeping the underlying inference engine behind a runtime layer.
+It provides a simple developer-facing API for building local AI applications that can understand user requests, extract structured arguments, select tools, and execute Python functions without requiring a cloud AI API.
 
-«Small AI. Big possibilities.»
-
----
-
-What is PyZen?
-
-PyZen allows an application to turn natural-language requests into structured tool calls.
-
-For example:
-
-User:
-How many orders does this customer have?
-
-PyZen can determine that the application should call:
-
-check_orders(phone="...")
-
-The Python function performs the actual operation.
-
-This makes PyZen useful for:
-
-- AI-powered APIs
-- E-commerce systems
-- Telegram bots
-- Facebook automation
-- Customer support systems
-- Database assistants
-- Local AI applications
-- Device automation
-- Lightweight agents
-- Embedded AI applications
+Repository: "github.com/ZUYANX/PyZen" (https://github.com/ZUYANX/PyZen)
 
 ---
 
-Core Architecture
+Overview
 
-                    User
-                     |
-                     v
-              +-------------+
-              |    PyZen    |
-              +-------------+
-                     |
-             Natural Language
-                     |
-                     v
-              +-------------+
-              | AI Runtime  |
-              +-------------+
-                     |
-                     v
-              Native AI Engine
-                     |
-                     v
-                Local Model
-                     |
-                     v
-              Tool Selection
-                     |
-                     v
-              Tool Registry
-                     |
-                     v
-             Python Function
-                     |
-          +----------+----------+
-          |          |          |
-          v          v          v
-       Database     API      Automation
+PyZen is designed around a simple idea:
 
-PyZen is designed so application developers do not need to directly interact with the native inference implementation.
+«Give a small local model access to real application functions.»
+
+For example, an application can expose:
+
+def check_orders(phone: str):
+    return {
+        "phone": phone,
+        "count": 3
+    }
+
+A user can then ask:
+
+01837478901 er koyta order ache?
+
+PyZen can identify the required tool and produce:
+
+{
+  "name": "check_orders",
+  "arguments": {
+    "phone": "01837478901"
+  }
+}
+
+The application can then execute the function locally.
+
+---
+
+Why PyZen?
+
+PyZen focuses on:
+
+- Local inference
+- Low memory usage
+- Tool calling
+- Structured arguments
+- Python integration
+- Android and Termux support
+- Offline-capable application architecture
+- Simple developer API
+- Minimal runtime overhead
+
+The goal is to make local AI practical for small applications, automation systems, bots, utilities, and embedded workflows.
+
+---
+
+Architecture
+
+                    User Request
+                         |
+                         v
+                +----------------+
+                |     PyZen      |
+                | Python API     |
+                +-------+--------+
+                        |
+                        v
+                +----------------+
+                | Tool Registry  |
+                +-------+--------+
+                        |
+                        v
+                +----------------+
+                | Native Runtime |
+                +-------+--------+
+                        |
+                        v
+                +----------------+
+                | Local AI Model |
+                +-------+--------+
+                        |
+                        v
+                 Function Call
+                        |
+                        v
+                +----------------+
+                | Python Tool    |
+                | / Application  |
+                +----------------+
 
 ---
 
 Features
 
-- Lightweight local AI runtime
-- Tool calling
-- Structured function arguments
-- Python function execution
-- Bangla and Banglish query support
-- Local inference
-- Low memory usage
-- Native backend architecture
-- Android ARM64 support
-- Termux support
-- Extensible tool registry
-- CLI support
-- Model abstraction
-- Runtime abstraction
-- Offline-capable architecture
-- Designed for future cross-platform backends
+Local AI
 
----
+PyZen is designed to run AI inference locally instead of sending application data to a remote AI service.
 
-Current Status
+Tool Calling
 
-PyZen is currently an early-stage project.
+Register normal Python functions as tools.
 
-The core workflow has been successfully tested on Android ARM64 through Termux.
+from pyzen import PyZen, ToolRegistry
 
-Tested workflow:
+registry = ToolRegistry()
 
-Natural-language query
-        |
-        v
-      PyZen
-        |
-        v
-  Native AI engine
-        |
-        v
-  Tool selection
-        |
-        v
-Python function
-        |
-        v
-Structured result
 
-Example tested result:
+@registry.tool
+def check_orders(phone: str):
+    return {
+        "phone": phone,
+        "count": 3
+    }
+
+
+ai = PyZen(
+    "models/needle2.cact",
+    tools=registry
+)
+
+result = ai.auto_execute(
+    "01837478901 er koyta order ache?"
+)
+
+print(result)
+
+Example result:
 
 {
-  "name": "check_orders",
-  "arguments": {
-    "phone": "<customer-phone>"
-  }
+    "model": {
+        "type": "call",
+        "function_calls": [
+            {
+                "name": "check_orders",
+                "arguments": {
+                    "phone": "01837478901"
+                }
+            }
+        ]
+    },
+    "executed": [
+        {
+            "name": "check_orders",
+            "arguments": {
+                "phone": "01837478901"
+            },
+            "result": {
+                "phone": "01837478901",
+                "count": 3
+            }
+        }
+    ]
 }
-
-The current Android implementation uses the official Needle 2 native engine as its inference backend.
-
----
-
-Requirements
-
-General
-
-- Python 3.9+
-- Git
-- pip
-- A supported native inference backend
-- A compatible model/runtime
-
-Android / Termux
-
-Recommended:
-
-Android ARM64
-Termux
-Python 3.9+
-
-The current development environment has been tested with:
-
-Android
-ARM64
-Termux
-Python 3.14
 
 ---
 
 Installation
 
-1. Clone the Repository
-```bash
+Clone the Repository
+
 git clone https://github.com/ZUYANX/PyZen.git
 cd PyZen
-```
 
-2. Install PyZen
-
-Install the package in editable mode:
+Install PyZen in editable mode:
 
 python -m pip install -e .
 
-Verify:
+Verify the installation:
 
 python -c "import pyzen; print(pyzen.__version__)"
 
@@ -190,54 +180,41 @@ Expected:
 
 ---
 
-Native Engine Setup
+Android / Termux
 
-PyZen uses a runtime abstraction for the native inference engine.
+PyZen can run on Android through Termux using the Android ARM64 native runtime.
 
-The current tested backend is the Android ARM64 Needle 2 native engine.
+Install Requirements
 
-The official Needle 2 distribution provides native targets for Android, Linux, Windows, macOS and other platforms.
+pkg update
+pkg install python git curl
 
----
+Create a virtual environment:
 
-Android / Termux Setup
+python -m venv ~/needle-env
+source ~/needle-env/bin/activate
 
-1. Install the native engine downloader
+Install the Python package:
 
 python -m pip install cactus-needle
 
-Verify:
-
-needle --help
-
 ---
 
-2. Download the Android ARM64 engine
+Download the Native Runtime
 
-For ARM64 Android devices:
+Create the PyZen engine directory:
 
 mkdir -p ~/.pyzen/engine
 
+Download the Android ARM64 runtime:
+
 needle download android-arm64 --generation 2 --out ~/.pyzen/engine
-
-The resulting directory should contain:
-
-~/.pyzen/engine/android-arm64/
-├── needle
-├── libneedle.a
-└── needle.h
-
-The official distribution provides "needle" and "libneedle.a" for Android ARM64.
-
----
-
-3. Install the native runner
 
 Create a local executable directory:
 
 mkdir -p ~/.local/bin
 
-Copy the Android native runner:
+Copy the runtime:
 
 cp ~/.pyzen/engine/android-arm64/needle ~/.local/bin/needle-native
 
@@ -245,390 +222,286 @@ Make it executable:
 
 chmod +x ~/.local/bin/needle-native
 
-Add it to PATH if necessary:
-
-set -Ux fish_user_paths ~/.local/bin $fish_user_paths
+Add it to PATH.
 
 For Bash:
 
 export PATH="$HOME/.local/bin:$PATH"
 
+For Fish:
+
+set -Ux fish_user_paths $HOME/.local/bin $fish_user_paths
+
 Verify:
 
 needle-native --help
 
-Expected output includes:
-
---prompt
---tools
---serve
---port
---max
-
 ---
 
-Model Setup
+Model
 
-PyZen's current model target is the official Needle 2 model:
-
-needle2.cact
-
-The current official model is approximately 13.7 MB.
-
-Create the model directory:
-
-mkdir -p models
+PyZen's current backend is based on the Needle 2 native engine.
 
 Download the model:
 
-curl -L \
-  https://huggingface.co/Cactus-Compute/needle2/resolve/main/needle2.cact \
-  -o models/needle2.cact
+mkdir -p models
+curl -L https://huggingface.co/Cactus-Compute/needle2/resolve/main/needle2.cact -o models/needle2.cact
 
-Verify the file:
-
-ls -lh models/needle2.cact
-
-Verify the official SHA256:
+Verify the SHA-256 checksum:
 
 sha256sum models/needle2.cact
 
-Expected SHA256:
+Expected checksum:
 
 b43aabfcaf1a6db6acf488076eab71d823c08697c7af4521fc1d174b60ede5ba
 
-The official model repository currently lists this SHA256 for "needle2.cact".
+The model should be stored at:
 
----
-
-Important Model Note
-
-The standalone native runner distributed by Needle 2 contains the base model/runtime integration required for the command-line workflow.
-
-The "models/needle2.cact" file is kept in the PyZen project for model management, compatibility checking, and future runtime backends/custom model support.
-
-For the current Android CLI backend, the native runner is the component actually executed by PyZen.
+PyZen/
+└── models/
+    └── needle2.cact
 
 ---
 
 Configure the Engine
 
-PyZen can use the environment variable:
+PyZen can use the "PYZEN_ENGINE" environment variable to locate the native runtime.
 
-PYZEN_ENGINE
-
-Android / Termux:
+For Bash:
 
 export PYZEN_ENGINE="$HOME/.local/bin/needle-native"
-
-Verify:
-
-echo $PYZEN_ENGINE
-
-Expected:
-
-/data/data/com.termux/files/home/.local/bin/needle-native
 
 For Fish:
 
 set -Ux PYZEN_ENGINE "$HOME/.local/bin/needle-native"
 
+Verify:
+
+echo $PYZEN_ENGINE
+
 ---
 
-First Engine Test
+Basic Usage
 
-Run:
+from pyzen import PyZen
 
-needle-native --help
+ai = PyZen("models/needle2.cact")
 
-Then test the native engine:
+response = ai(
+    "Hello, what can you do?"
+)
 
-needle-native --prompt "Hello"
-
-If the engine returns a structured response, the native backend is working.
+print(response)
 
 ---
 
 Tool Calling
 
-PyZen tools are normal Python functions.
-
-Create a tool registry:
+The main PyZen workflow is registering application functions.
 
 from pyzen import PyZen, ToolRegistry
 
 registry = ToolRegistry()
 
-Create a function:
 
+@registry.tool
 def check_orders(phone: str):
-    """Check how many orders belong to a phone number."""
-
-    return {
-        "phone": phone,
-        "count": 3
-    }
-
-Register it:
-
-registry.register(check_orders)
-
-Create PyZen:
-
-ai = PyZen(
-    model_path="models/needle2.cact",
-    tools=registry
-)
-
-Run a query:
-
-result = ai.auto_execute(
-    "How many orders does this customer have?"
-)
-
-print(result)
-
----
-
-Complete Example
-
-Create:
-
-test.py
-
-with:
-
-from pyzen import PyZen, ToolRegistry
-
-
-registry = ToolRegistry()
-
-
-def check_orders(phone: str):
-    """Check how many orders belong to a phone number."""
-
     return {
         "phone": phone,
         "count": 3
     }
 
 
-registry.register(check_orders)
-
-
 ai = PyZen(
-    model_path="models/needle2.cact",
+    "models/needle2.cact",
     tools=registry
 )
 
-
-result = ai.auto_execute(
-    "How many orders does this customer have?"
+response = ai(
+    "01837478901 er koyta order ache?"
 )
 
+print(response)
 
-print(result)
-
-Run:
-
-python test.py
-
-The model can produce a structured tool call similar to:
+The model can identify:
 
 {
-  "function_calls": [
-    {
-      "name": "check_orders",
-      "arguments": {
-        "phone": "<customer-phone>"
-      }
-    }
-  ]
+  "name": "check_orders",
+  "arguments": {
+    "phone": "01837478901"
+  }
 }
 
-PyZen then executes:
-
-check_orders(phone="<customer-phone>")
-
-and returns the result.
-
 ---
 
-Using Real Database Data
+Automatic Tool Execution
 
-PyZen does not need to know how your database works.
+PyZen also provides "auto_execute()".
 
-Your application owns the database logic.
+from pyzen import PyZen, ToolRegistry
 
-Example:
+registry = ToolRegistry()
 
+
+@registry.tool
 def check_orders(phone: str):
-    orders = database.find_orders_by_phone(phone)
-
     return {
         "phone": phone,
-        "count": len(orders),
-        "orders": orders
+        "count": 3
     }
 
-This separation keeps the AI layer lightweight and the application logic under developer control.
+
+ai = PyZen(
+    "models/needle2.cact",
+    tools=registry
+)
+
+result = ai.auto_execute(
+    "01837478901 er koyta order ache?"
+)
+
+print(result)
+
+This performs:
+
+User request
+      |
+      v
+Model inference
+      |
+      v
+Tool selection
+      |
+      v
+Argument extraction
+      |
+      v
+Python function execution
+      |
+      v
+Tool result
 
 ---
 
-Multiple Tools
+Creating Custom Tools
 
-You can register multiple functions:
+Any suitable Python function can be exposed through the registry.
 
-def check_orders(phone: str):
-    """Check customer orders."""
-    return {"count": 3}
+from pyzen import ToolRegistry
+
+registry = ToolRegistry()
 
 
-def get_customer(phone: str):
-    """Get customer information."""
+@registry.tool
+def get_customer(name: str):
     return {
-        "name": "Customer",
-        "phone": phone
+        "name": name,
+        "status": "active"
     }
 
 
-def cancel_order(order_id: str):
-    """Cancel an order."""
+@registry.tool
+def calculate_total(price: float, quantity: int):
+    return price * quantity
+
+PyZen generates tool schemas from the Python function signatures and type hints.
+
+---
+
+Real-World Example
+
+PyZen can be connected to an existing application.
+
+For example:
+
+from pyzen import PyZen, ToolRegistry
+
+registry = ToolRegistry()
+
+
+@registry.tool
+def get_order_status(order_id: str):
+    # Connect this to your database or API.
     return {
         "order_id": order_id,
-        "status": "cancelled"
+        "status": "processing"
     }
 
 
-registry.register(check_orders)
-registry.register(get_customer)
-registry.register(cancel_order)
+@registry.tool
+def check_orders(phone: str):
+    # Replace with your real database query.
+    return {
+        "phone": phone,
+        "count": 3
+    }
 
-PyZen can expose all registered tools to the model.
 
----
+ai = PyZen(
+    "models/needle2.cact",
+    tools=registry
+)
 
-CLI Usage
+result = ai.auto_execute(
+    "01837478901 er koyta order ache?"
+)
 
-PyZen provides a command-line interface.
+print(result)
 
-Example:
-
-pyzen \
-  --model models/needle2.cact \
-  --engine "$PYZEN_ENGINE" \
-  --prompt "How many orders does this customer have?"
-
----
-
-Project Structure
-
-PyZen/
-|
-├── pyzen/
-│   ├── __init__.py
-│   ├── model.py
-│   ├── runtime.py
-│   ├── tools.py
-│   └── cli.py
-|
-├── models/
-│   ├── needle2.cact
-│   └── README.txt
-|
-├── native/
-│   └── README.txt
-|
-├── examples/
-│   └── order_demo.py
-|
-├── tests/
-│   └── test_tools.py
-|
-├── scripts/
-│   └── install_termux.fish
-|
-├── pyproject.toml
-├── README.md
-├── LICENSE
-└── .gitignore
+This allows PyZen to act as a lightweight AI layer on top of an existing application.
 
 ---
 
-Runtime
+Supported Platforms
 
-The runtime is the bridge between PyZen and the underlying inference engine.
+The current native runtime architecture is intended to support:
 
-PyZen
-  |
-  v
-model.py
-  |
-  v
-runtime.py
-  |
-  v
-Native Engine
-  |
-  v
-Local AI
+Platform| Architecture
+Android| ARM64
+Android| ARMv7
+Android| RISC-V
+Linux| ARM64
+Linux| x86_64
+macOS| ARM64
+Windows| ARM64
+Windows| x86_64
+WebAssembly| WASM
 
-This architecture allows PyZen to replace the backend later without forcing application developers to rewrite their code.
+Actual availability depends on the native runtime binaries provided by the underlying engine.
 
 ---
 
-Backend Architecture
+Linux
 
-The long-term backend architecture is:
-
-                 PyZen API
-                     |
-               Runtime Layer
-                     |
-        +------------+------------+
-        |            |            |
-        v            v            v
-     Android       Linux       Windows
-      Engine       Engine       Engine
-        |
-        v
-      macOS / WASM
-
-The official Needle 2 distribution currently provides platform-specific native runners and libraries for Android, Linux, Windows, macOS and WebAssembly targets.
-
----
-
-Linux Setup
-
-Install the Python package:
+Install the runtime package:
 
 python -m pip install cactus-needle
 
-Download the Linux ARM64 engine:
+Download an ARM64 runtime:
 
 needle download linux-arm64 --generation 2 --out ~/.pyzen/engine
 
-For Linux x86-64:
+Or download an x86_64 runtime when available:
 
 needle download linux-x86_64 --generation 2 --out ~/.pyzen/engine
 
-Then configure:
+Configure PyZen:
 
 export PYZEN_ENGINE="$HOME/.pyzen/engine/linux-arm64/needle"
 
-For x86-64:
+Verify:
 
-export PYZEN_ENGINE="$HOME/.pyzen/engine/linux-x86_64/needle"
+"$PYZEN_ENGINE" --help
 
 ---
 
-macOS Setup
+macOS
 
 Install:
 
 python -m pip install cactus-needle
 
-Apple Silicon:
+Download the ARM64 runtime:
 
 needle download macos-arm64 --generation 2 --out ~/.pyzen/engine
 
@@ -636,35 +509,139 @@ Configure:
 
 export PYZEN_ENGINE="$HOME/.pyzen/engine/macos-arm64/needle"
 
+Verify:
+
+"$PYZEN_ENGINE" --help
+
 ---
 
-Windows Setup
+Windows
 
-Install:
+Install the Python package:
 
 python -m pip install cactus-needle
 
-Download the Windows ARM64 engine:
+Download the runtime:
 
 needle download windows-arm64 --generation 2 --out "$HOME\.pyzen\engine"
 
-For Windows x64:
+For x86_64 systems, use the corresponding Windows x86_64 runtime.
 
-needle download windows-x86_64 --generation 2 --out "$HOME\.pyzen\engine"
-
-Set the engine:
+Configure PowerShell:
 
 $env:PYZEN_ENGINE="$HOME\.pyzen\engine\windows-arm64\needle.exe"
 
+Verify:
+
+& $env:PYZEN_ENGINE --help
+
 ---
 
-Running Tests
+Environment Variables
 
-Install testing dependencies if necessary:
+Variable| Purpose
+"PYZEN_ENGINE"| Path to the native PyZen/Needle runtime
 
-python -m pip install pytest
+Example:
 
-Run:
+export PYZEN_ENGINE="$HOME/.local/bin/needle-native"
+
+---
+
+Project Structure
+
+PyZen/
+│
+├── pyzen/
+│   ├── __init__.py
+│   ├── cli.py
+│   ├── model.py
+│   ├── runtime.py
+│   ├── runtime_ctypes.py
+│   └── tools.py
+│
+├── examples/
+│   └── order_demo.py
+│
+├── tests/
+│   └── test_tools.py
+│
+├── models/
+│   ├── README.txt
+│   └── needle2.cact
+│
+├── native/
+│   └── README.txt
+│
+├── scripts/
+│   └── install_termux.fish
+│
+├── .gitignore
+├── LICENSE
+├── README.md
+└── pyproject.toml
+
+---
+
+Core API
+
+"PyZen"
+
+Main interface for local AI inference.
+
+from pyzen import PyZen
+
+ai = PyZen("models/needle2.cact")
+
+"ToolRegistry"
+
+Manages application tools.
+
+from pyzen import ToolRegistry
+
+registry = ToolRegistry()
+
+"tool"
+
+Register Python functions as AI-callable tools.
+
+@registry.tool
+def check_orders(phone: str):
+    return {"count": 3}
+
+"complete"
+
+Run model inference.
+
+response = ai.complete(
+    "01837478901 er koyta order ache?"
+)
+
+"auto_execute"
+
+Run inference and execute returned tool calls.
+
+result = ai.auto_execute(
+    "01837478901 er koyta order ache?"
+)
+
+---
+
+CLI
+
+PyZen also exposes a command-line entry point.
+
+After installation:
+
+pyzen --help
+
+The CLI interface is intended to provide a simple way to interact with the runtime without writing a complete Python application.
+
+---
+
+Testing
+
+Run the test suite:
 
 python -m pytest -q
 
@@ -672,71 +649,203 @@ Expected:
 
 1 passed
 
----
+Run the example:
 
-Troubleshooting
-
-Engine not found
-
-If you see:
-
-Native engine not found
-
-Check:
-
-echo $PYZEN_ENGINE
-
-Then:
-
-ls -lh "$PYZEN_ENGINE"
-
-If necessary:
-
-export PYZEN_ENGINE=/path/to/needle
+python examples/order_demo.py
 
 ---
 
-Android Permission Error
+Performance
 
-Run:
+The current Android prototype has demonstrated:
 
-chmod +x "$PYZEN_ENGINE"
+Peak RAM: approximately 23–24 MB
 
-Then:
+Inference speed varies depending on device, runtime version, prompt, and execution environment.
 
-"$PYZEN_ENGINE" --help
+Example Android measurements have reached roughly:
 
----
+Prefill: ~280–290 tokens/sec
+Decode:  ~100–140 tokens/sec
 
-Model Checksum Failure
-
-Run:
-
-sha256sum models/needle2.cact
-
-The expected current SHA256 is:
-
-b43aabfcaf1a6db6acf488076eab71d823c08697c7af4521fc1d174b60ede5ba
-
-If it differs, download the model again.
+These numbers are examples from development hardware and should not be treated as guaranteed benchmarks.
 
 ---
 
-Python Import Error
+Privacy
 
-Run:
+PyZen is designed around local inference.
 
-python -m pip install -e .
+Application data can remain inside the device or server running the runtime instead of being automatically sent to a cloud AI provider.
 
-Then:
+However, privacy depends on the application and tools connected to PyZen. A tool that calls an external API can naturally send data to that API.
 
-python -c "import pyzen; print(pyzen.__version__)"
+Developers should review all registered tools before deploying PyZen in privacy-sensitive environments.
 
 ---
 
-Development
+Security
 
-Clone the project:
+PyZen tools execute Python functions provided by the application.
+
+Only expose functions that the application is intentionally allowing the AI to call.
+
+For production applications:
+
+- Validate tool arguments.
+- Authenticate sensitive operations.
+- Authorize users before performing protected actions.
+- Avoid exposing unrestricted shell execution.
+- Avoid passing secrets directly into model prompts.
+- Log important tool operations.
+- Handle tool failures safely.
+- Apply rate limits where appropriate.
+
+For example, avoid exposing unrestricted functions such as:
+
+@registry.tool
+def execute_command(command: str):
+    ...
+
+unless the application has a carefully designed security boundary around it.
+
+---
+
+Current Runtime Design
+
+The current PyZen 0.1 runtime uses a native subprocess backend.
+
+Conceptually:
+
+Python Application
+       |
+       v
+     PyZen
+       |
+       v
+ ToolRegistry
+       |
+       v
+ Native Runtime
+       |
+       v
+ Local Model
+
+The Python layer handles the developer API and tool registration while the native runtime performs model inference.
+
+The current standalone native runner uses its own embedded/base model integration. The ".cact" model file is retained as part of PyZen's model-management architecture and for future backend support.
+
+---
+
+Development Status
+
+PyZen is currently in early development.
+
+PyZen 0.1
+
+Implemented:
+
+- Python package
+- "PyZen" API
+- "ToolRegistry"
+- Function schema generation
+- Tool calling
+- Structured arguments
+- Native subprocess runtime
+- Android ARM64 runtime
+- Termux support
+- Automatic tool execution
+- Basic tests
+- Example application
+
+---
+
+Roadmap
+
+Planned improvements include:
+
+Runtime
+
+- Native backend abstraction
+- Better ".cact" model loading
+- Runtime version management
+- Cross-platform packaging
+- WASM support
+- More efficient process management
+
+AI
+
+- Tool result to final-answer loop
+- Multiple tool calls
+- Conversation state
+- Streaming inference
+- Better structured output handling
+- Improved error recovery
+
+Developer Experience
+
+- Cleaner configuration
+- CLI improvements
+- Automatic runtime installation
+- Better diagnostics
+- Type-safe APIs
+- Documentation
+- PyPI distribution
+
+Ecosystem
+
+- Plugin architecture
+- Database integrations
+- HTTP API integration
+- Telegram bot integration
+- E-commerce integrations
+- Automation workflows
+- Embedded AI applications
+
+---
+
+Example Use Cases
+
+PyZen can be integrated into applications such as:
+
+E-commerce
+      |
+      +-- Order lookup
+      +-- Customer lookup
+      +-- Product search
+      +-- Stock checking
+
+Automation
+      |
+      +-- Task execution
+      +-- Data processing
+      +-- API calls
+
+Bots
+      |
+      +-- Telegram bots
+      +-- Customer support
+      +-- Business assistants
+
+Developer Tools
+      |
+      +-- Local coding assistants
+      +-- CLI utilities
+      +-- Structured command systems
+
+Embedded AI
+      |
+      +-- Android applications
+      +-- Edge devices
+      +-- Offline utilities
+
+---
+
+Contributing
+
+Contributions are welcome.
+
+Fork the repository:
 
 git clone https://github.com/ZUYANX/PyZen.git
 cd PyZen
@@ -745,7 +854,7 @@ Create a branch:
 
 git checkout -b feature/my-feature
 
-Install development version:
+Install development dependencies:
 
 python -m pip install -e .
 
@@ -753,146 +862,24 @@ Run tests:
 
 python -m pytest -q
 
----
+Commit your changes:
 
-Roadmap
-
-PyZen 0.1
-
-- [x] Python package
-- [x] Runtime abstraction
-- [x] Tool registry
-- [x] Tool schema generation
-- [x] Tool calling
-- [x] Argument extraction
-- [x] Python function execution
-- [x] Android ARM64 testing
-- [x] Termux testing
-- [x] Basic test suite
-
-PyZen 0.2
-
-- [ ] Tool-result to final-answer loop
-- [ ] Multiple tool calls
-- [ ] Better error handling
-- [ ] Conversation state
-- [ ] Streaming
-- [ ] Improved tool API
-- [ ] More examples
-- [ ] Better model management
-
-PyZen 1.0
-
-- [ ] Stable public API
-- [ ] PyPI release
-- [ ] Android backend
-- [ ] Linux backend
-- [ ] Windows backend
-- [ ] macOS backend
-- [ ] WASM backend
-- [ ] Backend auto-detection
-- [ ] Model management
-- [ ] Production documentation
-- [ ] Cross-platform release packages
-
----
-
-Privacy
-
-PyZen is designed around local inference.
-
-The application can run its AI inference locally rather than sending prompts and tool data to a remote AI API.
-
-Network access may still be required during initial installation or when downloading model/engine files.
-
-Once the required files are available locally, the runtime can operate without requiring a remote AI API.
-
----
-
-Performance
-
-The current Android ARM64 development test achieved approximately:
-
-Peak RAM:       ~24 MB
-Prefill:        ~286 tok/s
-Decode:         ~141 tok/s
-
-These numbers are development measurements and should not be treated as universal benchmarks.
-
-Performance depends on:
-
-- Device CPU
-- Architecture
-- Thermal conditions
-- Query length
-- Tool schema size
-- Output length
-- Runtime version
-
----
-
-Security
-
-PyZen tools execute normal Python code.
-
-Only register functions that your application is willing to expose to the AI runtime.
-
-For example:
-
-registry.register(check_orders)
-
-is safe only if "check_orders" itself validates its inputs and permissions.
-
-For production applications:
-
-- Validate tool arguments.
-- Authenticate sensitive operations.
-- Apply authorization checks.
-- Avoid exposing arbitrary shell execution.
-- Avoid exposing unrestricted filesystem access.
-- Log sensitive tool operations appropriately.
-- Treat model-generated arguments as untrusted input.
-
----
-
-Contributing
-
-Contributions are welcome.
-
-Before submitting a pull request:
-
-1. Create a feature branch.
-2. Keep changes focused.
-3. Add tests for new functionality.
-4. Run the test suite.
-5. Update documentation when necessary.
-6. Submit a pull request with a clear description.
-
-Example:
-
-git checkout -b feature/my-feature
-python -m pytest -q
 git add .
-git commit -m "Add my feature"
+git commit -m "Add new feature"
+
+Push the branch:
+
 git push origin feature/my-feature
+
+Then open a pull request on GitHub.
 
 ---
 
 License
 
-PyZen is released under the MIT License.
+See the "LICENSE" file for the project's license.
 
-See "LICENSE" (LICENSE) for details.
-
----
-
-Acknowledgements
-
-PyZen currently uses the Needle 2 native inference backend for its working implementation.
-
-Needle 2 is an open on-device tool-calling model and provides platform-specific native runtimes and model artifacts.
-
-PyZen provides the application-facing runtime, tool registry, and integration layer.
+PyZen's Python code, native runtime, and model files may have different licensing terms depending on their source. Review the relevant upstream licenses before redistributing third-party components.
 
 ---
 
@@ -900,26 +887,32 @@ Author
 
 MR ZUYAN
 
-PyZen
+GitHub:
 
-Small AI. Big possibilities.
+https://github.com/ZUYANX
+
+Project:
+
+https://github.com/ZUYANX/PyZen
 
 ---
 
-Vision
+Project Philosophy
 
-The long-term goal of PyZen is to provide a simple local AI interface:
+PyZen is built around a simple principle:
 
-from pyzen import PyZen
+Small Model
+    +
+Simple Runtime
+    +
+Real Tools
+    =
+Useful Local AI
 
-ai = PyZen("my-model")
+The objective is not to build another cloud chatbot.
 
-result = ai(
-    "Check the customer's latest order"
-)
+The objective is to make small local models useful inside real software.
 
-while PyZen handles the underlying runtime, model inference, tool selection, argument extraction, and application integration.
+---
 
-Build locally.
-Run locally.
-Integrate simply.
+PyZen — Local AI, connected to your tools.
