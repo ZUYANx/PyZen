@@ -26,14 +26,14 @@ def check_orders(phone: str):
 
 A user can then ask:
 
-01837478901 er koyta order ache?
+01837478xxx er koyta order ache?
 
 PyZen can identify the required tool and produce:
 
 {
   "name": "check_orders",
   "arguments": {
-    "phone": "01837478901"
+    "phone": "01837478xxx"
   }
 }
 
@@ -138,7 +138,7 @@ Example result:
             {
                 "name": "check_orders",
                 "arguments": {
-                    "phone": "01837478901"
+                    "phone": "0183740xx1"
                 }
             }
         ]
@@ -147,10 +147,10 @@ Example result:
         {
             "name": "check_orders",
             "arguments": {
-                "phone": "01837478901"
+                "phone": "018374xxx1"
             },
             "result": {
-                "phone": "01837478901",
+                "phone": "018374xxx",
                 "count": 3
             }
         }
@@ -318,7 +318,7 @@ ai = PyZen(
 )
 
 response = ai(
-    "01837478901 er koyta order ache?"
+    "01837xxxx1 er koyta order ache?"
 )
 
 print(response)
@@ -328,7 +328,7 @@ The model can identify:
 {
   "name": "check_orders",
   "arguments": {
-    "phone": "01837478901"
+    "phone": "01837xxxx1"
   }
 }
 
@@ -357,7 +357,7 @@ ai = PyZen(
 )
 
 result = ai.auto_execute(
-    "01837478901 er koyta order ache?"
+    "01837xxxxx er koyta order ache?"
 )
 
 print(result)
@@ -443,7 +443,7 @@ ai = PyZen(
 )
 
 result = ai.auto_execute(
-    "01837478901 er koyta order ache?"
+    "0183xxxxxx1 er koyta order ache?"
 )
 
 print(result)
@@ -614,7 +614,7 @@ def check_orders(phone: str):
 Run model inference.
 
 response = ai.complete(
-    "01837478901 er koyta order ache?"
+    "01837xxxx1 er koyta order ache?"
 )
 
 "auto_execute"
@@ -622,7 +622,7 @@ response = ai.complete(
 Run inference and execute returned tool calls.
 
 result = ai.auto_execute(
-    "01837478901 er koyta order ache?"
+    "01837xxxxx1 er koyta order ache?"
 )
 
 ---
