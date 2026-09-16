@@ -169,17 +169,10 @@ Python 3.14
 Installation
 
 1. Clone the Repository
-
-git clone https://github.com/YOUR_USERNAME/PyZen.git
+```bash
+git clone https://github.com/ZUYANX/PyZen.git
 cd PyZen
-
-Replace:
-
-YOUR_USERNAME
-
-with the GitHub username that owns the repository.
-
----
+```
 
 2. Install PyZen
 
